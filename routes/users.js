@@ -28,13 +28,9 @@ router.post('/', asyncHandler(async (req, res, next) => {
       res.status(400).json({
         error: "Incomplete information provided."
       })
-    } else if (await User.findOne({
-        where: {
-          emailAddress: req.body.emailAddress
-        }
-      })) {
+    } else if(await User.findOne({where: {emailAddress: req.body.emailAddress.toLowerCase()}})){
       res.status(400).json({
-        error: "Existing email address."
+        message: "Existing email address."
       })
     } else {
       var salt = bcrypt.genSaltSync(10);
