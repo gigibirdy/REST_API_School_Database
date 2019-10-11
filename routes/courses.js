@@ -57,7 +57,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 router.post('/', middleware.authenticateUser, asyncHandler(async (req, res, next) => {
   try {
     const new_course = await Course.create(req.body);
-    res.location(`/${req.body.id}`);
+    res.location(`/${new_course.id}`);
     res.status(201).end();
   } catch (error) {
     if (error.name === "SequelizeValidationError") {
@@ -75,7 +75,7 @@ router.put('/:id', middleware.authenticateUser, middleware.courseOwner, asyncHan
   try {
     if (!req.body.title || !req.body.description) {
       res.status(400).send({
-        message: "Incomplete information provided. Please check your input and re-submit."
+        message: "Course title and description can not be empty. Please check your input and re-submit."
       })
     } else {
       course = await Course.findByPk(req.params.id);

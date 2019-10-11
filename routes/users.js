@@ -26,7 +26,7 @@ router.post('/', asyncHandler(async (req, res, next) => {
   try {
     if(!req.body.password || !req.body.emailAddress || !req.body.firstName || !req.body.lastName) {
       res.status(400).json({
-        error: "Incomplete information provided."
+        message: "First and last name, email address and password can not be empty. Please check your input and re-submit."
       })
     } else if(await User.findOne({where: {emailAddress: req.body.emailAddress.toLowerCase()}})){
       res.status(400).json({
@@ -54,7 +54,10 @@ router.post('/', asyncHandler(async (req, res, next) => {
 router.get('/', middleware.authenticateUser, asyncHandler(async (req, res) => {
   const user = req.currentUser;
   res.status(200).json({
-    user: user
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    emailAddress: user.emailAddress
   });
 }));
 
