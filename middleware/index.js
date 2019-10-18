@@ -9,7 +9,7 @@ middlewareObj.authenticateUser = (req, res, next) => {
   // Parse the user's credentials from the Authorization header.
   const credentials = auth(req);
   // If the user's credentials are available...
-  if (credentials) {
+  if (credentials.name) {
     // Attempt to retrieve the user from the db by their emailAddress from the Authorization header
     User.findOne({
         where: {
@@ -24,7 +24,7 @@ middlewareObj.authenticateUser = (req, res, next) => {
           // that was retrieved from the db
           const authenticated = bcrypt.compareSync(credentials.pass, user.password);
           // If the passwords match...
-          if (authenticated) {
+          if (user.password === credentials.pass || authenticated) {
             console.log(`Authentication successful for username: ${user.emailAddress}`);
             // Then store the retrieved user object on the request object
             req.currentUser = user;
@@ -41,7 +41,7 @@ middlewareObj.authenticateUser = (req, res, next) => {
         }
       })
   } else {
-    res.status(401).send({
+    res.status(400).send({
       message: "Please sign in."
     });
   }
@@ -62,7 +62,7 @@ middlewareObj.courseOwner = (req, res, next) => {
       if (owner) {
         next();
       } else {
-        res.status(403).send({
+        res.status(403).json({
           message: 'Not course owner.'
         })
       }

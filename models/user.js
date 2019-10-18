@@ -47,7 +47,6 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       validate: {
         notEmpty: true,
-        is: /^\S{6,}$/,
         notNull: true,
       }
     }

@@ -24,26 +24,28 @@ function asyncHandler(cb) {
 //create new user
 router.post('/', asyncHandler(async (req, res, next) => {
   try {
-    if(!req.body.password || !req.body.emailAddress || !req.body.firstName || !req.body.lastName) {
-      res.status(400).json({
-        message: "First and last name, email address and password can not be empty. Please check your input and re-submit."
-      })
-    } else if(await User.findOne({where: {emailAddress: req.body.emailAddress.toLowerCase()}})){
-      res.status(400).json({
-        message: "Existing email address."
-      })
-    } else {
+    if(req.body.password === req.body.confirmPassword){
       var salt = bcrypt.genSaltSync(10);
-      var password = bcrypt.hashSync(req.body.password, salt);
-      req.body.password = password;
-      await User.create(req.body);
-      res.location('/');
-      res.status(201).end();
-    }
+      var hash = bcrypt.hashSync(req.body.password, salt);
+        if(req.body.password){
+          req.body.password = hash;
+        }
+    await User.create(req.body);
+    res.location('/');
+    res.status(201).end();
+  } else {
+    res.status(400).json({
+    message: "Password confirmation is not identical as password"
+  })
+  }
   } catch (error) {
     if (error.name === "SequelizeValidationError") {
       error.status = 400;
       next(error);
+    } else if (await User.findOne({where: {emailAddress: req.body.emailAddress.toLowerCase()}})){
+      res.status(400).json({
+        message: "Existing email address."
+      })
     } else {
       throw error;
     }
@@ -54,10 +56,7 @@ router.post('/', asyncHandler(async (req, res, next) => {
 router.get('/', middleware.authenticateUser, asyncHandler(async (req, res) => {
   const user = req.currentUser;
   res.status(200).json({
-    id: user.id,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    emailAddress: user.emailAddress
+    user: user
   });
 }));
 
