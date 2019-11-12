@@ -24,24 +24,26 @@ function asyncHandler(cb) {
 //create new user
 router.post('/', asyncHandler(async (req, res, next) => {
   try {
-    if(req.body.password === req.body.confirmPassword){
+    if(req.body.password){
       var salt = bcrypt.genSaltSync(10);
       var hash = bcrypt.hashSync(req.body.password, salt);
-        if(req.body.password){
-          req.body.password = hash;
-        }
-    await User.create(req.body);
-    res.location('/');
-    res.status(201).end();
-  } else {
-    res.status(400).json({
-    message: "Password confirmation is not identical as password"
-  })
-  }
+      req.body.password = hash;
+      const user = await User.create(req.body);
+      res.location('/');
+      res.status(201).end();
+    } else {
+      res.status(400).json({
+      message: "please provide email address, password, first and last name."
+      })
+    }
   } catch (error) {
     if (error.name === "SequelizeValidationError") {
-      error.status = 400;
-      next(error);
+      errorItems = error.errors.map(error =>
+         ' ' + error.path
+      )
+      res.status(400).json({
+        message: `Please provide${errorItems}`
+      })
     } else if (await User.findOne({where: {emailAddress: req.body.emailAddress.toLowerCase()}})){
       res.status(400).json({
         message: "Existing email address."
@@ -56,7 +58,12 @@ router.post('/', asyncHandler(async (req, res, next) => {
 router.get('/', middleware.authenticateUser, asyncHandler(async (req, res) => {
   const user = req.currentUser;
   res.status(200).json({
-    user: user
+    user: {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    emailAddress: user.emailAddress
+    }
   });
 }));
 
