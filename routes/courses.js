@@ -87,15 +87,31 @@ router.post('/', middleware.authenticateUser, asyncHandler(async (req, res, next
 router.put('/:id', middleware.authenticateUser, middleware.courseOwner, asyncHandler(async (req, res, next) => {
   let course;
   try {
-    course = await Course.findByPk(req.params.id);
-    if(course){
-        const updatedCourse = await course.update(req.body);
-        console.log(updatedCourse)
-        res.status(204).end();
+    if(req.body.title && req.body.description){
+      course = await Course.findByPk(req.params.id);
+      if(course){
+          const updatedCourse = await course.update(req.body);
+          console.log(updatedCourse)
+          res.status(204).end();
+      } else {
+        res.status(404).json({
+          message: 'Course not found'
+        });
+      }
     } else {
-      res.status(404).json({
-        message: 'Course not found'
-      });
+      if(!req.body.title && !req.body.description){
+        res.status(400).json({
+          message: 'Please provide course title and description.'
+        });
+      } else if (!req.body.title){
+        res.status(400).json({
+          message: 'Please provide course title.'
+        });
+      } else {
+        res.status(400).json({
+          message: 'Please provide course description.'
+        });
+      }
     }
   } catch (error) {
     if (error.name === "SequelizeValidationError") {
